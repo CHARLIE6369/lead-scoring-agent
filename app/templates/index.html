@@ -55,15 +55,15 @@
     <h2>Score a single lead</h2>
     <form id="leadForm">
       <div class="row2">
-        <label>Name<input name="Name" value="Rahul Sharma"></label>
-        <label>Company Name<input name="Company Name" value="ABC Technologies"></label>
+        <label>Name<input name="Name" value="Vishwa"></label>
+        <label>Company Name<input name="Company Name" value="SAM Technologies"></label>
       </div>
       <div class="row2">
         <label>Job Title<input name="Job Title" value="Founder"></label>
         <label>Industry<input name="Industry" value="IT Services"></label>
       </div>
       <div class="row2">
-        <label>Company Location<input name="Company Location" value="Bangalore, India"></label>
+        <label>Company Location<input name="Company Location" value="Kerala, India"></label>
         <label>Company Size
           <select name="Company Size">
             <option>1-10 employees</option><option>11-50 employees</option><option selected>51-200 employees</option>
@@ -79,11 +79,11 @@
             <option>Google Ads</option><option>Cold Outreach</option>
           </select>
         </label>
-        <label>Website<input name="Website" value="https://www.abctechnologies.com"></label>
+        <label>Website<input name="Website" value="https://www.samtechnologies.com"></label>
       </div>
-      <label>Requirement<input name="Requirement" value="Looking for CRM software"></label>
+      <label>Requirement<input name="Requirement" value="Looking for AI/ML Intern"></label>
       <div class="row2">
-        <label>Email<input name="Email" value="rahul@example.com"></label>
+        <label>Email<input name="Email" value="Vishwa@example.com"></label>
         <label>Phone<input name="Phone" value="+91 9876543210"></label>
       </div>
       <label class="check"><input type="checkbox" id="llmSingle" checked> Generate LLM explanation (needs GROQ_API_KEY)</label>
@@ -123,7 +123,8 @@ function list(items) {
 function renderResult(r) {
   const badge = el("span", { class: `badge ${r.classification}` }, r.classification);
   const score = el("span", { class: "score" }, `${r.score}/100`);
-  const head = el("div", {}, badge, score);
+  const title = el("h2", { style: "margin:0 0 8px;font-size:18px" }, `${r.name || "Unnamed lead"}${r.company ? " — " + r.company : ""}`);
+  const head = el("div", {}, title, badge, score);
   const factors = el("table", {},
     el("thead", {}, el("tr", {}, el("th", {}, "Factor"), el("th", {}, "Points"), el("th", {}, "Reason"))),
     el("tbody", {}, ...r.factors.map(f => el("tr", {},
