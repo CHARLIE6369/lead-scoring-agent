@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Lead Scoring</title>
+<style>
+  :root { --bg:#f6f7fb; --card:#fff; --text:#1d2330; --muted:#6b7385; --line:#e3e6ee; --accent:#3b5bdb;
+          --hot:#d9480f; --warm:#e67700; --cold:#1971c2; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:20px 28px; background:#fff; border-bottom:1px solid var(--line); }
+  header h1 { margin:0; font-size:20px; }
+  header p { margin:4px 0 0; color:var(--muted); font-size:14px; }
+  main { max-width:1100px; margin:24px auto; padding:0 16px; display:grid; gap:20px; grid-template-columns: 1fr 1fr; }
+  @media (max-width:800px){ main{ grid-template-columns:1fr; } }
+  section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:20px; }
+  section.wide { grid-column: 1 / -1; }
+  h2 { font-size:16px; margin:0 0 14px; }
+  label { display:block; font-size:12px; color:var(--muted); margin-bottom:10px; }
+  input, select { width:100%; padding:8px 10px; margin-top:4px; border:1px solid var(--line); border-radius:6px; font-size:14px; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  button { background:var(--accent); color:#fff; border:0; border-radius:6px; padding:9px 16px; font-size:14px; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:wait; }
+  .check { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); margin:6px 0 12px; }
+  .check input { width:auto; margin:0; }
+  .card { border:1px solid var(--line); border-radius:8px; padding:16px; margin-top:14px; }
+  .badge { display:inline-block; padding:3px 10px; border-radius:999px; color:#fff; font-size:12px; font-weight:600; }
+  .Hot{background:var(--hot)} .Warm{background:var(--warm)} .Cold{background:var(--cold)}
+  .score { font-size:32px; font-weight:700; margin-left:12px; vertical-align:middle; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:12px; }
+  @media (max-width:800px){ .grid2{ grid-template-columns:1fr; } }
+  h3 { font-size:13px; margin:0 0 6px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  ul { margin:0; padding-left:18px; font-size:14px; }
+  p.text { font-size:14px; line-height:1.5; margin:6px 0; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-top:12px; }
+  th, td { text-align:left; padding:8px; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { color:var(--muted); font-weight:600; }
+  .stats { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+  .stat { border:1px solid var(--line); border-radius:8px; padding:10px 14px; min-width:110px; }
+  .stat b { display:block; font-size:20px; }
+  .stat span { font-size:12px; color:var(--muted); }
+  .err { color:#c92a2a; font-size:14px; margin-top:10px; }
+  .muted { color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>AI-Based Lead Scoring System</h1>
+  <p>Rule-based, weighted scoring (0–100). The LLM only writes explanations, never the score.</p>
+</header>
+
+<main>
+  <section>
+    <h2>Score a single lead</h2>
+    <form id="leadForm">
+      <div class="row2">
+        <label>Name<input name="Name" value="Rahul Sharma"></label>
+        <label>Company Name<input name="Company Name" value="ABC Technologies"></label>
+      </div>
+      <div class="row2">
+        <label>Job Title<input name="Job Title" value="Founder"></label>
+        <label>Industry<input name="Industry" value="IT Services"></label>
+      </div>
+      <div class="row2">
+        <label>Company Location<input name="Company Location" value="Bangalore, India"></label>
+        <label>Company Size
+          <select name="Company Size">
+            <option>1-10 employees</option><option>11-50 employees</option><option selected>51-200 employees</option>
+            <option>201-500 employees</option><option>501-1000 employees</option><option>1001-5000 employees</option><option>5000+ employees</option>
+          </select>
+        </label>
+      </div>
+      <div class="row2">
+        <label>Lead Source
+          <select name="Lead Source">
+            <option>Referral</option><option>Partner Referral</option><option>Website Contact Form</option><option selected>Webinar</option>
+            <option>Trade Show</option><option>LinkedIn</option><option>Organic Search</option><option>Email Campaign</option>
+            <option>Google Ads</option><option>Cold Outreach</option>
+          </select>
+        </label>
+        <label>Website<input name="Website" value="https://www.abctechnologies.com"></label>
+      </div>
+      <label>Requirement<input name="Requirement" value="Looking for CRM software"></label>
+      <div class="row2">
+        <label>Email<input name="Email" value="rahul@example.com"></label>
+        <label>Phone<input name="Phone" value="+91 9876543210"></label>
+      </div>
+      <label class="check"><input type="checkbox" id="llmSingle" checked> Generate LLM explanation (needs GROQ_API_KEY)</label>
+      <button type="submit">Score lead</button>
+    </form>
+    <div id="singleResult"></div>
+  </section>
+
+  <section>
+    <h2>Score a CSV file</h2>
+    <p class="muted">Upload a CSV with the same column headers as the sample dataset. Rule-based scoring; LLM text is off for batch runs.</p>
+    <form id="csvForm">
+      <input type="file" id="csvFile" accept=".csv" required>
+      <div style="margin-top:12px"><button type="submit">Score file</button></div>
+    </form>
+    <div id="csvResult"></div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+
+function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") node.className = v; else node.setAttribute(k, v);
+  }
+  for (const c of children) node.append(c instanceof Node ? c : document.createTextNode(c ?? ""));
+  return node;
+}
+
+function list(items) {
+  if (!items || !items.length) return el("p", { class: "muted" }, "None");
+  return el("ul", {}, ...items.map(i => el("li", {}, i)));
+}
+
+function renderResult(r) {
+  const badge = el("span", { class: `badge ${r.classification}` }, r.classification);
+  const score = el("span", { class: "score" }, `${r.score}/100`);
+  const head = el("div", {}, badge, score);
+  const factors = el("table", {},
+    el("thead", {}, el("tr", {}, el("th", {}, "Factor"), el("th", {}, "Points"), el("th", {}, "Reason"))),
+    el("tbody", {}, ...r.factors.map(f => el("tr", {},
+      el("td", {}, f.label),
+      el("td", {}, `${f.points}/${f.max_points}`),
+      el("td", {}, f.reason)))));
+  return el("div", { class: "card" },
+    head,
+    el("p", { class: "text" }, el("b", {}, "Quality: "), r.quality_assessment),
+    el("div", { class: "grid2" },
+      el("div", {}, el("h3", {}, "Positive factors"), list(r.positive_factors)),
+      el("div", {}, el("h3", {}, "Negative factors"), list(r.negative_factors))),
+    el("h3", { style: "margin-top:14px" }, "Scoring explanation"),
+    el("p", { class: "text" }, r.scoring_explanation),
+    el("p", { class: "text" }, el("b", {}, "Confidence: "), `${r.confidence.level}. ${r.confidence.reason}`),
+    el("p", { class: "text" }, el("b", {}, "Next action: "), r.recommended_next_action),
+    r.data_warnings.length ? el("p", { class: "err" }, "Data warnings: " + r.data_warnings.join("; ")) : "",
+    el("details", { style: "margin-top:12px" }, el("summary", {}, "Factor breakdown"), factors),
+    el("p", { class: "muted" }, r.llm_used ? "Text generated by LLM; score by rules." : "Text generated by rules (LLM not used)."));
+}
+
+$("leadForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const btn = e.target.querySelector("button");
+  const data = Object.fromEntries(new FormData(e.target).entries());
+  btn.disabled = true; $("singleResult").textContent = "Scoring…";
+  try {
+    const url = `/api/score?use_llm=${$("llmSingle").checked}`;
+    const resp = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+    if (!resp.ok) throw new Error(await resp.text());
+    $("singleResult").replaceChildren(renderResult(await resp.json()));
+  } catch (err) {
+    $("singleResult").replaceChildren(el("p", { class: "err" }, "Error: " + err.message));
+  } finally { btn.disabled = false; }
+});
+
+$("csvForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const file = $("csvFile").files[0];
+  if (!file) return;
+  const btn = e.target.querySelector("button");
+  btn.disabled = true; $("csvResult").textContent = "Scoring file…";
+  try {
+    const body = new FormData(); body.append("file", file);
+    const resp = await fetch("/api/score-csv", { method: "POST", body });
+    if (!resp.ok) throw new Error((await resp.json()).detail || "Upload failed");
+    const { summary: s, results } = await resp.json();
+    const stats = el("div", { class: "stats" },
+      ...[["Leads", s.total], ["Hot", s.hot], ["Warm", s.warm], ["Cold", s.cold], ["Avg score", s.average_score], ["Missing fields", s.with_missing_fields]]
+        .map(([k, v]) => el("div", { class: "stat" }, el("b", {}, String(v)), el("span", {}, k))));
+    const table = el("table", {},
+      el("thead", {}, el("tr", {}, ...["Name", "Company", "Score", "Class", "Confidence", "Next action"].map(h => el("th", {}, h)))),
+      el("tbody", {}, ...results.slice(0, 50).map(r => el("tr", {},
+        el("td", {}, r.name), el("td", {}, r.company), el("td", {}, String(r.score)),
+        el("td", {}, el("span", { class: `badge ${r.classification}` }, r.classification)),
+        el("td", {}, r.confidence.level), el("td", {}, r.recommended_next_action)))));
+    $("csvResult").replaceChildren(stats,
+      el("p", { class: "muted" }, `Showing first ${Math.min(50, results.length)} of ${results.length}. Use the API with output=csv to download everything.`),
+      table);
+  } catch (err) {
+    $("csvResult").replaceChildren(el("p", { class: "err" }, "Error: " + err.message));
+  } finally { btn.disabled = false; }
+});
+</script>
+</body>
+</html>
